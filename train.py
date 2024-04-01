@@ -14,21 +14,21 @@ import copy
 from Dataset import STAMDataset
 from Loss import ContrastiveLoss,TotalLoss,caculate_MAP
 from Network import STAM
-from nets.Arc import Arcface
+from nets.MarginLoss import MarginLoss
 from torch.nn import CrossEntropyLoss
 from sklearn.metrics import average_precision_score
 
 
 train_batch_size = 16       
 train_number_epochs = 20 
-model_name = 'STAM1'         
+model_name = 'your model name'
 w1 = 0.5                    
 w2 = 0.1                    
-
-folder_dataset_train = datasets.ImageFolder("/home/xyz/data/VERI Wild/train")
-folder_dataset_train_night = "/home/xyz/data/VERI Wild/train_night"
-folder_dataset_test = datasets.ImageFolder("/home/xyz/data/VERI Wild/val")
-folder_dataset_test_night = "/home/xyz/data/VERI Wild/train_night"
+b = 0.5
+folder_dataset_train = datasets.ImageFolder("your dataset path")
+folder_dataset_train_night = "your dataset path"
+folder_dataset_test = datasets.ImageFolder("your dataset path")
+folder_dataset_test_night = "your dataset path"
 
 transform = transforms.Compose([
             transforms.Resize(256),
@@ -55,7 +55,7 @@ test_dataloader = DataLoader(stam_dataset_test,
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-head = Arcface(embedding_size=5000, classnum=2500,s=64,m=0.7).to(device)
+head = MarginLoss(embedding_size=5000, classnum=2500,s=64., m=0.7).to(device)
 net = STAM().cuda()  
 
 
@@ -85,10 +85,10 @@ for epoch in range(0,train_number_epochs):
         output1,output2,output3,output4 = net(img1,img2,img3,img4)
         loss_dis_day = criterion_dis(output1, output2, label)
         loss_dis_night =criterion_dis(output3, output4, label)
-        output1_1 = head(output1, y1)
-        output1_2 = head(output2, y2)
-        output1_3 = head(output3, y1)
-        output1_4 = head(output4, y2)
+        output1_1 = head(output1, y1, b)
+        output1_2 = head(output2, y2, b)
+        output1_3 = head(output3, y1, b)
+        output1_4 = head(output4, y2, b)
         loss_anle = criterion_angle(output1_1, y1)+criterion_angle(output1_2, y2)+criterion_angle(output1_3, y1)+criterion_angle(output1_4, y2)
         LossT = loss_total(loss_anle,loss_dis_day,loss_dis_night,w1,w2)
         LossT.backward()
@@ -98,7 +98,7 @@ for epoch in range(0,train_number_epochs):
         torch.cuda.empty_cache()
         average_precision = average_precision_score(sign, res)
     print("==================train==================")
-    print("Epoch number {}\n Current loss {}".format(epoch, LossT.item()))
+    print("Epoch number {}".format(epoch))
     print("average_precision: {}\n".format(average_precision))
 
 
@@ -116,10 +116,10 @@ for epoch in range(0,train_number_epochs):
         loss_dis_day = criterion_dis(output1, output2, label)
         loss_dis_night =criterion_dis(output3, output4, label)
  
-        output1_1 = head(output1, y1)
-        output1_2 = head(output2, y2)
-        output1_3 = head(output3, y1)
-        output1_4 = head(output4, y2)
+        output1_1 = head(output1, y1, b)
+        output1_2 = head(output2, y2, b)
+        output1_3 = head(output3, y1, b)
+        output1_4 = head(output4, y2, b)
         loss_anle = criterion_angle(output1_1, y1)+criterion_angle(output1_2, y2)+criterion_angle(output1_3, y1)+criterion_angle(output1_4, y2)
 
         LossT = loss_total(loss_anle,loss_dis_day,loss_dis_night,w1,w2)

@@ -14,18 +14,18 @@ import copy
 from Dataset import STAMDataset
 from Loss import ContrastiveLoss,TotalLoss,caculate_MAP
 from Network import STAM
-from nets.Arc import Arcface
+
 from torch.nn import CrossEntropyLoss
 from sklearn.metrics import average_precision_score
 
 
 test_batch_size = 1      
-model_name = 'STAM'         
+model_name = 'your model name'
 W1 = 0.5                    
                 
 map_location = torch.device('cuda:0') 
-folder_dataset_test = datasets.ImageFolder("/home/xyz/data/day")
-folder_dataset_test_night = "/home/xyz/data/night_images"
+folder_dataset_test = datasets.ImageFolder("your dataset path")
+folder_dataset_test_night = "your dataset path"
 
 transform = transforms.Compose([
             transforms.Resize(256),
@@ -46,7 +46,6 @@ test_dataloader = DataLoader(stam_dataset_test,
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-head = Arcface(embedding_size=5000, classnum=2500,s=64,m=0.7).to(device)
 net = STAM().cuda()  
 net.load_state_dict(torch.load("model_res/"+ '{}.pkl'.format(model_name), map_location=map_location))
 signs=[]
@@ -66,5 +65,6 @@ for i,data in enumerate(test_dataloader):
     with torch.no_grad():
         output1,output2,output3,output4 = net(x1,x2,x3,x4)
     results,signs = cal_map(output1,output2,output3,output4,results,signs,label,W1)
+average_precision = average_precision_score(signs, results)
 print("==================test==================")
 print("average_precision: {}\n".format(average_precision))
