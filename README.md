@@ -1,9 +1,9 @@
 # AMDF
 ## Dataset
-VERI-WILD:https://hyper.ai/datasets/9396
+VERI-Wild:https://hyper.ai/datasets/9396
 
-VEHICLEIP:https://hyper.ai/datasets/17036
+VehicleID:https://hyper.ai/datasets/17036
 
-VERI-776:https://paperswithcode.com/dataset/veri-776
+VeRi-776:https://paperswithcode.com/dataset/veri-776
 ## Running the experiments
 python train.py
